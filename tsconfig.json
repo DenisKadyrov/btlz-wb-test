@@ -17,12 +17,12 @@
         }
     },
     "include": [
-        "src/**/*.ts",
-        "src/**/*.js",
+      "src/**/*.ts",
+      "src/**/*.js"
     ],
     "exclude": [
         "node_modules",
-        "src/**/*.test.*",
-        "src/**/*.spec.*"
+      "src/**/*.test.*",
+      "src/**/*.spec.*"
     ]
 }

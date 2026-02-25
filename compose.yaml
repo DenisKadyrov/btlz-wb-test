@@ -44,6 +44,19 @@ services:
 
     restart: unless-stopped
 
+    # Security: run as non-root user
+    user: postgres
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
 
   app:
     container_name: app
@@ -51,6 +64,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: prod
 
     environment:
       POSTGRES_HOST: postgres
@@ -60,13 +74,22 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PORT: ${APP_PORT}
       NODE_ENV: production
+      WB_API_TOKEN: ${WB_API_TOKEN}
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
+      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+      GOOGLE_SPREADSHEET_IDS: ${GOOGLE_SPREADSHEET_IDS}
+      LOG_LEVEL: info
+
+    volumes:
+      - ./logs:/app/logs
 
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - ${APP_PORT}:3000
 
     depends_on:
       postgres:
         condition: service_healthy
+
     networks:
       - postgres-net
 
@@ -76,5 +99,21 @@ services:
         max-size: 10m
         max-file: 5
 
-    command: [ "npm", "run", "start" ]
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
     restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
